@@ -23,7 +23,7 @@ class Story(BaseModel):
         schema_extra = {
             "example": {
                 "writerId": "1234",
-                "content": "[{'text':'This is the first page'}, {'text': 'this is the second page'}]",
+                "content": "[{\"text\":\"This is the first page\"}, {\"text\": \"this is the second page\"}]",
                 "title": "My story",
                 "description": "This is a great story",
                 "slug": "my-story",
@@ -47,7 +47,7 @@ class UpdateStoryModel(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "content": "[{'text':'This is the first page'}, {'text': 'this is the second page'}]",
+                "content": "[{\"text\":\"This is the first page\"}, {\"text\": \"this is the second page\"}]",
                 "title": "My story",
                 "description": "This is a great story",
                 "slug": "my-story",
