@@ -1,13 +1,22 @@
 import os
-import ssl
-import datetime
 
 from fastapi import FastAPI, Request, Response, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi_redis_cache import FastApiRedisCache, cache
-from server.routers import user, short, story, comment, category
-from pymongo import MongoClient
+from fastapi_redis_cache import FastApiRedisCache
+
+from db import db
+from src.AdminList.router import router as admin_list_router
+from src.Blog.router import router as blog_router
+from src.Category.router import router as category_router
+from src.Comment.router import router as comment_router
+from src.Control.router import router as control_router
+from src.Dashboard.router import router as dashboard_router
+from src.Notification.router import router as notification_router
+from src.Report.router import router as report_router
+from src.Short.router import router as short_router
+from src.Story.router import router as story_router
+from src.User.router import router as user_router
 
 
 async def verify_token(Authorization: str = Header()):
@@ -30,6 +39,12 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup():
+    db_username = 'hikaya'
+    db_password = 'hikaya308'
+    db_name = 'hikayaDB'
+    connection_string = f'mongodb+srv://{db_username}:{db_password}@hikaya.hwclb.mongodb.net/{db_name}?retryWrites=true&w=majority'
+    db.connect_to_database(path=connection_string)
+
     redis_cache = FastApiRedisCache()
     redis_cache.init(
         host_url=os.environ.get("REDIS_URL", LOCAL_REDIS_URL),
@@ -39,27 +54,18 @@ def startup():
     )
 
 
-# db_username = 'hikaya'
-# db_password = 'hikaya308'
-# db_name = 'hikayaDB'
-# cluster = MongoClient(
-#     f'mongodb+srv://{db_username}:{db_password}@hikaya.hwclb.mongodb.net/{db_name}?retryWrites=true&w=majority',
-#     connectTimeoutMS=30000, socketTimeoutMS=None, socketKeepAlive=True, connect=False,
-#     maxPoolsize=1, ssl_cert_reqs=ssl.CERT_NONE)
-#
-# db = cluster['Hikaya']
-# user_collection = db['User']
-# story_collection = db['Story']
-# categories_collection = db['Category']
-# comments_collection = db['Comments']
-# admin_lists_collection = db['AdminLists']
-# log_collection = db['Log']
-# report_collection = db['Report']
-# short_collection = db['Short']
+@app.on_event("shutdown")
+async def shutdown():
+    await db.close_database_connection()
 
-
-app.include_router(user.router)
-app.include_router(short.router)
-app.include_router(story.router)
-app.include_router(category.router)
-# app.include_router(comment.router)
+app.include_router(admin_list_router)
+app.include_router(blog_router)
+app.include_router(category_router)
+app.include_router(comment_router)
+app.include_router(control_router)
+app.include_router(dashboard_router)
+app.include_router(notification_router)
+app.include_router(report_router)
+app.include_router(short_router)
+app.include_router(story_router)
+app.include_router(user_router)

@@ -1,0 +1,5 @@
+"router.py" is for all the endpoints related to that specific collection
+
+"responses.py" is for all responses from the servers for a given collection
+
+"schemas.py" is for data validation models
