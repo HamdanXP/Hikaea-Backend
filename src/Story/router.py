@@ -32,21 +32,7 @@ async def get_story(slug: str):
         raise HTTPException(status_code=400, detail="The story does not exist")
 
     story_obj = story[0]
-    story_obj['storyId'] = str(story_obj['_id'])
-    story_obj.pop('_id', None)
-
-    story_obj['username'] = story_obj['writer']['username']
-    story_obj['profileImage'] = story_obj['writer']['profileImage']
-    story_obj['bio'] = story_obj['writer']['bio']
-    story_obj['writerName'] = story_obj['writer']['name']
-    story_obj.pop('writer', None)
-
-    story_obj['numPages'] = len(story_obj['content'])
-    story_obj['createdAt'] = str(story_obj['createdAt'])
-    story_obj.pop('dailyViews', None)
-
-    story_obj['commentsCount'] = len(story_obj['comments'])
-    return story_obj
+    return get_single_story_obj(story_obj)
 
 
 @router.post("/get_all_stories", description="Use to get all the stories", status_code=200)
@@ -140,21 +126,7 @@ async def get_random_story():
         {"$unwind": "$writer"},
         story_comments,
     ]))[0]
-    story['storyId'] = str(story['_id'])
-    story.pop('_id', None)
-
-    story['username'] = story['writer']['username']
-    story['profileImage'] = story['writer']['profileImage']
-    story['bio'] = story['writer']['bio']
-    story['writerName'] = story['writer']['name']
-    story.pop('writer', None)
-
-    story['numPages'] = len(story['content'])
-    story['createdAt'] = str(story['createdAt'])
-    story.pop('dailyViews', None)
-
-    story['commentsCount'] = len(story['comments'])
-    return story
+    return get_single_story_obj(story)
 
 
 @router.put("/add_story_view", description="Use to add a story view", status_code=200)
@@ -332,7 +304,7 @@ def add_view(storyId: StoryID):
         'createdAt': str(datetime.datetime.utcnow()),
         'source': 'storyViews'
     }
-    db.stories.insert_one(log_obj)
+    db.logs.insert_one(log_obj)
 
 
 def remove_view(story_id: str):
@@ -398,7 +370,7 @@ def add_liker(story_liker: StoryLiker):
         if 'FCM' in story:
             target_fcm = story['FCM']
         send_notification(title, text, image, link,
-                          notif_type, target_uid, sender_uid, target_fcm)
+                                notif_type, target_uid, sender_uid, target_fcm)
 
     log_obj = {
         'text': f'Some user liked the story ({story_name}))',
@@ -416,3 +388,30 @@ def remove_liker(liker_id: str, story_id: str):
 
     db.users.update_one(
         {'uid': liker_id}, {'$pull': {"likedStories": story_id}})
+
+
+def get_single_story_obj(story):
+    story['storyId'] = str(story['_id'])
+    story.pop('_id', None)
+
+    story['username'] = story['writer']['username']
+    story['profileImage'] = story['writer']['profileImage']
+    story['bio'] = story['writer']['bio']
+    story['writerName'] = story['writer']['name']
+    story.pop('writer', None)
+
+    story['commentsCount'] = len(story['comments'])
+    story['likes'] = len(story['likerList'])
+    story['numPages'] = len(story['content'])
+    story['createdAt'] = str(story['createdAt'])
+    story.pop('dailyViews', None)
+
+    if 'type' not in story or story['type'] != 'chat':
+        if type(story['content']) is str:
+            story['content'] = json.loads(story['content'], strict=False)
+
+        for page in story['content']:
+            if '<pre>' not in page['text']:
+                page['text'] = f"<pre>{page['text']}</pre>"
+
+    return story

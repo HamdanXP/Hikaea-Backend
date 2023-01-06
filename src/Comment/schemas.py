@@ -7,7 +7,8 @@ class Comment(BaseModel):
     commenterId: str = Field(..., description="The commenter uid")
     storyId: str = Field(..., description="The story's id")
     comment: str = Field(..., description="The comment")
-    replyToId: Optional[str] = Field(default=None, description="If the comment is reply, put the id of the user")
+    replyToId: Optional[str] = Field(default=None, description="The replied to comment's id")
+    replyToUserId: Optional[str] = Field(default=None, description="The replied to user's uid")
 
     class Config:
         schema_extra = {

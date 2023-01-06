@@ -49,9 +49,9 @@ async def check_unique_info(email_and_username: EmailAndUsername, res: Response)
 
 
 @router.get("/get_user_profile/{identifier}", description="Use to get the user profile")
-async def get_user_profile(identifier: str, search_by: str = 'uid'):
+async def get_user_profile(identifier: str, searchBy: str = 'uid'):
     user = list(db.users.aggregate([
-        {"$match": {search_by: identifier}},
+        {"$match": {searchBy: identifier}},
         {
             "$lookup": {
                 "from": "Story",
@@ -106,6 +106,10 @@ async def get_user_profile(identifier: str, search_by: str = 'uid'):
         raise HTTPException(status_code=400, detail="The user does not exist")
 
     profile = user[0]
+    profile['createdAt'] = str(profile['createdAt'])
+    profile['followingCount'] = len(profile['followingList'])
+    profile['followersCount'] = len(profile['followersList'])
+
     for story_list in profile['storyLists']:
         if len(story_list['listStoryIds']) > 0:
             list_stories = list(db.stories.aggregate([
@@ -220,7 +224,7 @@ def follow_user(follow: Follow, res: Response):
             if 'FCM' in target_user:
                 target_fcm = target_user['FCM']
             send_notification(title, text, image, link,
-                              notif_type, target_uid, sender_uid, target_fcm)
+                                    notif_type, target_uid, sender_uid, target_fcm)
 
         db.logs.insert_one(log_obj)
 
@@ -306,7 +310,7 @@ async def add_user_story_list(new_list: UserStoriesList, background_tasks: Backg
 
 @router.post("/add_story_to_list", description="Use to add a story to a user's story list", status_code=200)
 async def add_story_to_list(list_item: UserStoriesListItem, background_tasks: BackgroundTasks):
-    background_tasks.add_task(add_story_to_list, list_item)
+    background_tasks.add_task(add_story_to_the_list, list_item)
     return {"message": "The story has been added to the list successfully"}
 
 
@@ -435,7 +439,7 @@ def subscribe_user(subscription_info: SubscriptionInfo):
     if 'FCM' in target_user:
         target_fcm = target_user['FCM']
         send_notification(title, text, image, link,
-                          notif_type, target_uid, sender_uid, target_fcm)
+                                notif_type, target_uid, sender_uid, target_fcm)
 
     log_obj = {
         'text': f'{target_user["username"]} just subscribed 🤑💰 until {subscription_info.subscriptionExpiry}',

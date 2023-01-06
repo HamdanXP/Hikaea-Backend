@@ -72,6 +72,8 @@ def create_new_comment(new_comment: Comment):
     comment_dict['isWriter'] = writer_id == new_comment.commenterId
     comment_dict['status'] = 'published'
     comment_dict['createdAt'] = str(datetime.utcnow())
+    replied_to_user_id = new_comment.replyToUserId
+    comment_dict.pop('replyToUserId', None)
     db.comments.insert_one(comment_dict)
 
     log_obj = {
@@ -96,7 +98,7 @@ def create_new_comment(new_comment: Comment):
             target_fcm = writer_profile['FCM']
         send_notification(title, text, image, link, notif_type, target_uid, sender_uid, target_fcm)
 
-    if new_comment.replyToId is not None and new_comment.replyToId != writer_id:
+    if replied_to_user_id is not None and replied_to_user_id != writer_id:
         text = f"قام {commenter_profile['username']} بالرد على تعليقك"
         replied_to_profile = db.users.find_one({"uid": new_comment.replyToId}, {'_id': 0, 'FCM': 1})
         target_uid = new_comment.replyToId

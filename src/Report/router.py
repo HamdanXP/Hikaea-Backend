@@ -27,6 +27,7 @@ async def get_reports(report_type: str = None):
         {"$match": findBy},
         {
             "$project": {
+                "_id": 0,
                 "reportID": {"$toString": "$_id"},
                 "content": 1,
                 "status": 1,

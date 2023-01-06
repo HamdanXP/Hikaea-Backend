@@ -9,6 +9,7 @@ router = APIRouter(tags=['Categories'])
 @router.get("/list_of_categories", description="Use to get all the categories", status_code=200)
 async def get_categories():
     project_obj = {
+        "_id": 0,
         "id": {"$toString": "$_id"},
         "name": 1,
         "nameAr": 1,
