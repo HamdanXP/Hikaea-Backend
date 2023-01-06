@@ -277,7 +277,6 @@ async def get_user_story_lists(initiator_id: str):
         raise HTTPException(status_code=400, detail="The user does not exist")
 
     story_lists = result[0]['storyLists']
-
     for story_list in story_lists:
         if len(story_list['listStoryIds']) > 0:
             list_stories = list(db.stories.aggregate([
@@ -299,7 +298,7 @@ async def get_user_story_lists(initiator_id: str):
         else:
             story_list['listStories'] = []
 
-        return story_lists
+    return story_lists
 
 
 @router.put("/add_user_story_list", description="Use to create a new user's story list", status_code=201)
