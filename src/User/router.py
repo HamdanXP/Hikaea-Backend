@@ -24,8 +24,7 @@ async def check_unique_info(email_and_username: EmailAndUsername, res: Response)
     not_unique_user = None
     not_unique_email = None
     if email_and_username.username is not None:
-        not_unique_user = list(db.users.count_documents({'username': email_and_username.username}).collation(
-            {'locale': 'en', 'strength': 2}))
+        not_unique_user = list(db.users.count_documents({'username': email_and_username.username}))
     if email_and_username.email is not None:
         not_unique_email = db.users.find_one(
             {'email': email_and_username.email})
