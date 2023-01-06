@@ -442,7 +442,7 @@ def get_single_story_obj(story):
     story['likes'] = len(story['likerList'])
     story['numPages'] = len(story['content'])
     story['createdAt'] = str(story['createdAt'])
-    story['updatedAt'] = str(story['updatedAt'])
+    story['updatedAt'] = str(story['updatedAt']) if 'updatedAt' in story else str(story['createdAt'])
     story.pop('dailyViews', None)
 
     if 'type' not in story or story['type'] != 'chat':

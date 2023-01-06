@@ -46,7 +46,9 @@ async def get_admin_lists():
                             "description": 1,
                             "rank": 1,
                             "type": 1,
-                            "status": 1
+                            "status": 1,
+                            "createdAt": {"$toString": "$createdAt"},
+                            "updatedAt": {"$toString": "$updatedAt"}
                         }
                     },
                     {
