@@ -1,7 +1,9 @@
 from datetime import datetime
 
+import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi_redis_cache import cache_one_hour
 from fastapi.responses import JSONResponse
 from db import db
 from src.AdminList.schemas import AdminList, UpdateAdminList
@@ -10,6 +12,7 @@ router = APIRouter(tags=['AdminList'])
 
 
 @router.get(path="/get_admin_lists", description="Get all the admin story list", status_code=200)
+@cache_one_hour()
 async def get_admin_lists():
     admin_lists = list(db.admin_lists.aggregate([
         {
@@ -45,7 +48,12 @@ async def get_admin_lists():
                             "type": 1,
                             "status": 1
                         }
-                    }
+                    },
+                    {
+                        "$sort": {
+                            'createdAt': pymongo.DESCENDING,
+                        }
+                    },
                 ],
                 "as": "stories"
             }

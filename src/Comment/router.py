@@ -3,6 +3,7 @@ from datetime import datetime
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse
+from fastapi_redis_cache import cache_one_minute
 
 from db import db
 from src.Comment.schemas import Comment
@@ -24,6 +25,7 @@ async def delete_comment(comment_id: str, background_tasks: BackgroundTasks):
 
 
 @router.get("/get_story_comments/{story_id}", description="Use to get all the story's comments", status_code=200)
+@cache_one_minute()
 async def get_story_comments(story_id: str):
     comments = list(db.comments.aggregate([
         {"$match": {"storyId": story_id}},

@@ -8,7 +8,7 @@ router = APIRouter(tags=['Notification'])
 
 @router.get("/get_notifications/{user_id}", description="Use to get a user's notifications list", status_code=200)
 async def get_user_notifications(user_id: str):
-    user_notifications = db.notifications.aggregate([
+    user_notifications = list(db.notifications.aggregate([
         {"$match": {"targetUid": user_id}},
         {
             "$project": {
@@ -25,7 +25,7 @@ async def get_user_notifications(user_id: str):
                 "targetFCM": 1,
             },
         },
-    ])
+    ]))
     headers = {
         'accept': 'application/json',
         'Content-Type': 'application/json; charset=UTF-8'

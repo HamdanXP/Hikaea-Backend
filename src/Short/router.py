@@ -4,6 +4,7 @@ import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse
+from fastapi_redis_cache import cache_one_minute
 
 from db import db
 from src.Short.schemas import Short, ShortComment, ShortCommentVote, ShortVote
@@ -19,6 +20,7 @@ async def add_short(short: Short, background_tasks: BackgroundTasks):
 
 
 @router.get("/get_shorts", description="Use to get all the shorts", status_code=200)
+@cache_one_minute()
 async def get_shorts(limit: int = 6, sort: str = "new", next_page: str = None):
     sort_obj = [('createdAt', pymongo.DESCENDING)]
     find_obj = {}
@@ -77,6 +79,7 @@ async def get_shorts(limit: int = 6, sort: str = "new", next_page: str = None):
 
 
 @router.get("/get_short/{short_id}", description="Use to get a single short", status_code=200)
+@cache_one_minute()
 async def get_short(short_id: str):
     short = db.shorts.find_one({"_id": ObjectId(short_id)},
                                {

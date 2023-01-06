@@ -3,6 +3,7 @@ import datetime
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks, Response, status, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi_redis_cache import cache_one_minute
 
 from db import db
 from src.User.schemas import User, UpdateUser, EmailAndUsername, Follow, Block, SubscriptionInfo, UserStoriesList, \
@@ -58,20 +59,21 @@ async def check_unique_info(email_and_username: EmailAndUsername, res: Response)
 
 
 @router.get("/get_user_profile/{identifier}", description="Use to get the user profile")
+@cache_one_minute()
 async def get_user_profile(identifier: str, searchBy: str = 'uid'):
     user = list(db.users.aggregate([
         {"$match": {searchBy: identifier}},
         {
             "$lookup": {
                 "from": "Story",
-                "let": {"writerId": "$uid"},
+                "let": {"writerId": "$uid", 'writerName': '$name'},
                 "pipeline": [
                     {"$match": {"$and": [{"$expr": {"$eq": ["$writerId", "$$writerId"]}}, {'status': 'published'}]}},
                     {
                         "$project": {
                             "_id": 0,
                             "storyId": {"$toString": "$_id"},
-                            "writerName": "$name",
+                            "writerName": "$$writerName",
                             "title": 1,
                             "slug": 1,
                             "storyCover": 1,
@@ -86,14 +88,14 @@ async def get_user_profile(identifier: str, searchBy: str = 'uid'):
         {
             "$lookup": {
                 "from": "Story",
-                "let": {"likedStories": "$likedStories"},
+                "let": {"likedStories": "$likedStories", 'writerName': '$name'},
                 "pipeline": [
                     {"$match": {"$expr": {"$in": [{"$toString": "$_id"}, "$$likedStories"]}}},
                     {
                         "$project": {
                             "_id": 0,
                             "storyId": {"$toString": "$_id"},
-                            "writerName": "$name",
+                            "writerName": "$$writerName",
                             "title": 1,
                             "slug": 1,
                             "storyCover": 1,
@@ -154,7 +156,8 @@ async def update_user_profile(update_user_model: UpdateUser, background_tasks: B
 
 
 @router.get("/get_follow_list/{username}", description="Use to get the user follow list", status_code=200)
-async def add_subscription(username: str, type: str = "followersList"):
+@cache_one_minute()
+async def get_follow_list(username: str, type: str = "followersList"):
     user = list(db.users.aggregate([
         {"$match": {'username': username}},
         {
@@ -241,7 +244,7 @@ def follow_user(follow: Follow, res: Response):
             if 'FCM' in target_user:
                 target_fcm = target_user['FCM']
             send_notification(title, text, image, link,
-                                    notif_type, target_uid, sender_uid, target_fcm)
+                              notif_type, target_uid, sender_uid, target_fcm)
 
         db.logs.insert_one(log_obj)
 
@@ -459,7 +462,7 @@ def subscribe_user(subscription_info: SubscriptionInfo):
     if 'FCM' in target_user:
         target_fcm = target_user['FCM']
         send_notification(title, text, image, link,
-                                notif_type, target_uid, sender_uid, target_fcm)
+                          notif_type, target_uid, sender_uid, target_fcm)
 
     log_obj = {
         'text': f'{target_user["username"]} just subscribed 🤑💰 until {subscription_info.subscriptionExpiry}',

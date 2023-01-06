@@ -45,7 +45,7 @@ project_full_story = {
         "comments": "$emptyArray",
         "status": 1,
         "createdAt": {"$toString": "$createdAt"},
-
+        "updatedAt": {"$toString": "$updatedAt"},
     }
 }
 
@@ -134,7 +134,18 @@ def send_notification(title, text, image, link, notif_type, target_uid, sender_u
 
     # save notification
     db.notifications.insert_one(notif_obj)
+    send_fcm_notification(target_fcm, text, title, image)
 
+
+def notify_admin(title, text):
+    turki = db.users.find_one({"username": "Turki"}, {'FCM': 1})
+    send_fcm_notification(turki['FCM'], text, title, 'https://a.top4top.io/p_22286og1w1.jpeg')
+
+    hamdan = db.users.find_one({"username": "Hamdan"}, {'FCM': 1})
+    send_fcm_notification(hamdan['FCM'], text, title, 'https://a.top4top.io/p_22286og1w1.jpeg')
+
+
+def send_fcm_notification(target_fcm, text, title, image):
     headers = {'Content-Type': 'application/json',
                'Authorization': 'key=AAAAQR0QZ0w:APA91bE9xQE_0H6Cuz5HYBTweplhC96xA6Bzi3Hoo0tHK3LptRbd_6BtiFWSxH_DCk3t6Q4oK8BidYX0geVn3UwTbLuzr2jpdsMlvABwAZ5meA2QcEK559Gwp3Lw6-qGAFlZN2GR8Lop'}
 

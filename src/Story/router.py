@@ -5,11 +5,12 @@ import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi_redis_cache import cache_one_minute, cache_one_hour
 from slugify import slugify
 
 from db import db
 from src.Story.schemas import Story, StoriesQuery, UpdateStory, StoryID, StoryReader, StoryLiker
-from src.utils import story_comments, story_writer, send_notification, project_full_story
+from src.utils import story_comments, story_writer, send_notification, project_full_story, notify_admin
 
 router = APIRouter(tags=['Story'])
 
@@ -21,6 +22,7 @@ async def add_story(story: Story, background_tasks: BackgroundTasks):
 
 
 @router.get("/get_story/{slug}", description="Use to get a story by its slug", status_code=200)
+@cache_one_minute()
 async def get_story(slug: str):
     story = list(db.stories.aggregate([
         {"$match": {'slug': slug}},
@@ -114,7 +116,10 @@ async def update_story(update_obj: UpdateStory, background_tasks: BackgroundTask
 
 
 @router.get("/get_matched_stories/{search_text}", description="Use to search the stories by the title", status_code=200)
+@cache_one_hour()
 async def search_stories(search_text: str):
+    if len(search_text) < 3:
+        return []
     stories = list(db.stories.aggregate([
         {"$match": {'title': {'$regex': search_text}, 'status': 'published'}},
         story_writer,
@@ -258,6 +263,7 @@ def create_story(story: Story):
     story_dict['dailyViews'] = {}
     story_dict['likerList'] = []
     story_dict['createdAt'] = datetime.datetime.utcnow()
+    story_dict['updatedAt'] = datetime.datetime.utcnow()
 
     story_id = db.stories.insert_one(story_dict).inserted_id
     story_id = str(story_id)
@@ -273,6 +279,8 @@ def create_story(story: Story):
         'source': 'stories'
     }
     db.logs.insert_one(log_obj)
+    if story.status.lower() == 'pending':
+        notify_admin("تم نشر قصة جديدة!!", f"لقد قام مستخدم بنشر قصة جديدة بعنوان {story.title}")
 
 
 def mark_story_as_deleted(initiator_id: str, story_id: str):
@@ -304,11 +312,15 @@ def update_story_fields(update_obj: UpdateStory):
 
     story_dict = update_obj.dict()
     story_dict['slug'] = slug
+    story_dict['updatedAt'] = datetime.datetime.utcnow()
 
     db.stories.update_one(
         {'_id': ObjectId(update_obj.storyId)},
         {"$set": story_dict}
     )
+
+    if update_obj.status.lower() == 'published':
+        notify_admin("تم تحديث قصة منشورة!!", f"لقد تم تحديث القصة {update_obj.title}")
 
     log_obj = {
         'text': f'Story Updated ({update_obj.title}) with status ({update_obj.status.lower()})',
@@ -430,6 +442,7 @@ def get_single_story_obj(story):
     story['likes'] = len(story['likerList'])
     story['numPages'] = len(story['content'])
     story['createdAt'] = str(story['createdAt'])
+    story['updatedAt'] = str(story['updatedAt'])
     story.pop('dailyViews', None)
 
     if 'type' not in story or story['type'] != 'chat':

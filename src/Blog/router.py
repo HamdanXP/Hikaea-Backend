@@ -4,6 +4,8 @@ import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse
+from fastapi_redis_cache import cache_one_month
+
 from slugify import slugify
 
 from db import db
@@ -19,6 +21,7 @@ async def add_new_blog(new_blog: Blog, background_tasks: BackgroundTasks):
 
 
 @router.get(path="/get_all_blogs", description="Get all blogs", status_code=200)
+@cache_one_month()
 async def get_all_blogs(limit: int = 6, nextPage: str = ""):
     find_obj = {}
     project_obj = {
@@ -45,6 +48,7 @@ async def get_all_blogs(limit: int = 6, nextPage: str = ""):
 
 
 @router.get(path="/get_blog/{slug}", description="Get a single blog", status_code=200)
+@cache_one_month()
 async def get_blog(slug: str):
     project_obj = {
         "_id": 0,

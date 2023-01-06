@@ -1,5 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse
+from fastapi_redis_cache import cache_one_month
 
 from db import db
 from src.Category.schemas import Category
@@ -8,6 +9,7 @@ router = APIRouter(tags=['Categories'])
 
 
 @router.get("/list_of_categories", description="Use to get all the categories", status_code=200)
+@cache_one_month()
 async def get_categories():
     project_obj = {
         "_id": 0,
