@@ -2,6 +2,7 @@ import datetime
 
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks, Response, status, HTTPException
+from fastapi.responses import JSONResponse
 
 from db import db
 from src.User.schemas import User, UpdateUser, EmailAndUsername, Follow, Block, SubscriptionInfo, UserStoriesList, \
@@ -40,12 +41,20 @@ async def check_unique_info(email_and_username: EmailAndUsername, res: Response)
                 "messageAr": "البريد الالكتروني موجود من قبل، رجاء حاول استخدام بريد الكتروني اخر"
             }
         res.status_code = status.HTTP_400_BAD_REQUEST
-        return response
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+        return JSONResponse(content=response, headers=headers)
     else:
         response = {
             "message": "User information is valid and unique"
         }
-        return response
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+        return JSONResponse(content=response, headers=headers)
 
 
 @router.get("/get_user_profile/{identifier}", description="Use to get the user profile")
@@ -131,7 +140,11 @@ async def get_user_profile(identifier: str, searchBy: str = 'uid'):
         else:
             story_list['listStories'] = []
 
-    return profile
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=profile, headers=headers)
 
 
 @router.put("/update_user_profile", description="Use to update the user profile", status_code=200)
@@ -170,7 +183,11 @@ async def add_subscription(username: str, type: str = "followersList"):
         raise HTTPException(status_code=400, detail="The user does not exist")
 
     user_obj = user[0]
-    return user_obj['followInfo']
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=user_obj['followInfo'], headers=headers)
 
 
 @router.put("/follow", description="Use to follow a user", status_code=201)
@@ -298,7 +315,11 @@ async def get_user_story_lists(initiator_id: str):
         else:
             story_list['listStories'] = []
 
-    return story_lists
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=story_lists, headers=headers)
 
 
 @router.put("/add_user_story_list", description="Use to create a new user's story list", status_code=201)

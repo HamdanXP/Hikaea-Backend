@@ -2,6 +2,7 @@ from datetime import datetime
 
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
+from fastapi.responses import JSONResponse
 
 from db import db
 from src.Report.schemas import Report, UpdateReport
@@ -37,8 +38,11 @@ async def get_reports(report_type: str = None):
             }
         }
     ]))
-
-    return reports
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=reports, headers=headers)
 
 
 @router.put("/update_report_status", description="Use to update the status of a reported thing", status_code=200)

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, BackgroundTasks
+from fastapi.responses import JSONResponse
 
 from db import db
 from src.Category.schemas import Category
@@ -14,7 +15,11 @@ async def get_categories():
         "name": 1,
         "nameAr": 1,
     }
-    return list(db.categories.find({}, project_obj))
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=list(db.categories.find({}, project_obj)), headers=headers)
 
 
 @router.put("/add_new_category", description="Use to add a new category", status_code=200)

@@ -2,10 +2,10 @@ from datetime import datetime
 
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, BackgroundTasks
-
+from fastapi.responses import JSONResponse
 from db import db
 from src.AdminList.schemas import AdminList, UpdateAdminList
-from src.utils import project_story_field
+
 router = APIRouter(tags=['AdminList'])
 
 
@@ -60,7 +60,11 @@ async def get_admin_lists():
             },
         },
     ]))
-    return admin_lists
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=admin_lists, headers=headers)
 
 
 @router.put(path="/create_new_admin_list", description="Create a new admin list", status_code=201)

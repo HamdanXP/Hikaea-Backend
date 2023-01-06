@@ -2,6 +2,7 @@ from datetime import datetime
 
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
+from fastapi.responses import JSONResponse
 
 from db import db
 from src.Comment.schemas import Comment
@@ -55,7 +56,11 @@ async def get_story_comments(story_id: str):
                 }
         },
     ]))
-    return comments
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=comments, headers=headers)
 
 
 def create_new_comment(new_comment: Comment):

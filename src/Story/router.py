@@ -4,6 +4,7 @@ import json
 import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi.responses import JSONResponse
 from slugify import slugify
 
 from db import db
@@ -32,7 +33,11 @@ async def get_story(slug: str):
         raise HTTPException(status_code=400, detail="The story does not exist")
 
     story_obj = story[0]
-    return get_single_story_obj(story_obj)
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=get_single_story_obj(story_obj), headers=headers)
 
 
 @router.post("/get_all_stories", description="Use to get all the stories", status_code=200)
@@ -88,7 +93,12 @@ async def get_all_stories(storiesQuery: StoriesQuery, limit: int = 12, include_c
         },
         project_full_story
     ]))
-    return stories
+
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=stories, headers=headers)
 
 
 @router.delete("/story_id/{initiator_id}/{story_id}", description="Use to delete a user's story", status_code=200)
@@ -115,7 +125,11 @@ async def search_stories(search_text: str):
         },
         project_full_story
     ]))
-    return stories
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=stories, headers=headers)
 
 
 @router.get("/get_random_story", description="Use to get a random story", response_model=Story, status_code=200)
@@ -126,7 +140,11 @@ async def get_random_story():
         {"$unwind": "$writer"},
         story_comments,
     ]))[0]
-    return get_single_story_obj(story)
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=get_single_story_obj(story), headers=headers)
 
 
 @router.put("/add_story_view", description="Use to add a story view", status_code=200)
@@ -172,7 +190,11 @@ async def get_user_stories(writer_id: str):
         },
         project_full_story
     ]))
-    return stories
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=stories, headers=headers)
 
 
 @router.get("/get_list_stories/{creator}/{list_id}", description="Use to get a list's stories",
@@ -208,7 +230,11 @@ async def get_user_stories(creator: str, list_id: str):
                 }
             }
         ]))
-        return list_stories
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+        return JSONResponse(content=list_stories, headers=headers)
 
 
 def create_story(story: Story):
@@ -370,7 +396,7 @@ def add_liker(story_liker: StoryLiker):
         if 'FCM' in story:
             target_fcm = story['FCM']
         send_notification(title, text, image, link,
-                                notif_type, target_uid, sender_uid, target_fcm)
+                          notif_type, target_uid, sender_uid, target_fcm)
 
     log_obj = {
         'text': f'Some user liked the story ({story_name}))',

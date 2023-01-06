@@ -1,6 +1,7 @@
 import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
+from fastapi.responses import JSONResponse
 
 from db import db
 from src.Dashboard.schemas import AdminUpdateStory
@@ -38,7 +39,11 @@ async def get_logs(nextPage: str = None):
         query['_id'] = {'$lt': ObjectId(nextPage)}
 
     logs = list(db.logs.find(query, project_obj).sort('createdAt', pymongo.DESCENDING).limit(100))
-    return logs
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=logs, headers=headers)
 
 
 @router.put("/admin_update_story_status", description="Use to update story status as an admin", status_code=200)
@@ -77,7 +82,11 @@ async def get_pending_stories():
         {"$unwind": "$writer"},
         project_story_field,
     ]))
-    return pending_stories
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=pending_stories, headers=headers)
 
 
 def update_status(admin_update_story: AdminUpdateStory):

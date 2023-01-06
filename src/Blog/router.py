@@ -3,6 +3,7 @@ from datetime import datetime
 import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
+from fastapi.responses import JSONResponse
 from slugify import slugify
 
 from db import db
@@ -36,7 +37,11 @@ async def get_all_blogs(limit: int = 6, nextPage: str = ""):
         find_obj['_id'] = {'$lt': ObjectId(nextPage)}
 
     blogs = list(db.blogs.find(find_obj, project_obj).sort('createdAt', pymongo.DESCENDING).limit(limit))
-    return blogs
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=blogs, headers=headers)
 
 
 @router.get(path="/get_blog/{slug}", description="Get a single blog", status_code=200)
@@ -53,7 +58,11 @@ async def get_blog(slug: str):
         "createdAt": 1
     }
 
-    return db.blogs.find_one({'slug': slug}, project_obj)
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=db.blogs.find_one({'slug': slug}, project_obj), headers=headers)
 
 
 def create_new_blog(new_blog: Blog):

@@ -24,14 +24,9 @@ async def verify_token(Authorization: str = Header()):
         raise HTTPException(status_code=401, detail="Authorization header invalid")
 
 
-async def set_content_type(response: Response):
-    response.media_type = "application/json"
-    response.charset = "UTF-8"
-
-
 LOCAL_REDIS_URL = "redis://127.0.0.1:6379"
 
-app = FastAPI(dependencies=[Depends(verify_token), Depends(set_content_type)])
+app = FastAPI(dependencies=[Depends(verify_token)])
 app.add_middleware(GZipMiddleware)
 app.add_middleware(
     CORSMiddleware,

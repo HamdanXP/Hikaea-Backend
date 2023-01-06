@@ -3,6 +3,7 @@ import datetime
 import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
+from fastapi.responses import JSONResponse
 
 from db import db
 from src.Short.schemas import Short, ShortComment, ShortCommentVote, ShortVote
@@ -51,7 +52,7 @@ async def get_shorts(limit: int = 6, sort: str = "new", next_page: str = None):
         else:
             find_obj['_id'] = {'$lt': ObjectId(next_page)}
 
-    return list(
+    shorts = list(
         db.shorts
         .find(find_obj, {
             "_id": 0,
@@ -68,6 +69,11 @@ async def get_shorts(limit: int = 6, sort: str = "new", next_page: str = None):
         })
         .sort(sort_obj)
         .limit(limit))
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=shorts, headers=headers)
 
 
 @router.get("/get_short/{short_id}", description="Use to get a single short", status_code=200)
@@ -98,7 +104,11 @@ async def get_short(short_id: str):
     else:
         short['comments'] = []
 
-    return short
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=short, headers=headers)
 
 
 @router.get("/get_matched_shorts/{search_text}/{search_date}", description="Use to search the shorts",
@@ -125,7 +135,11 @@ async def get_matched_shorts(search_text: str, search_date: str):
         )
         .sort('createdAt', pymongo.DESCENDING)
     )
-    return shorts
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=shorts, headers=headers)
 
 
 @router.post("/add_short_comment", description="Use to add a new short comment", status_code=201)

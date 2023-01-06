@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 
 from db import db
 
@@ -11,4 +12,8 @@ async def get_controls():
     control['controlId'] = str(control['_id'])
     control.pop('_id', None)
 
-    return control
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=control, headers=headers)
