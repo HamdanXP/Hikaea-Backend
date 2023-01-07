@@ -89,7 +89,9 @@ async def get_all_stories(storiesQuery: StoriesQuery, limit: int = 12, include_c
                 sort_key: pymongo.DESCENDING
             }
         },
-        {"$limit": limit},
+        {"$limit": limit} if limit > 0 else {
+            "$addFields": {}
+        },
         {
             "$addFields": {"emptyArray": []}
         },
