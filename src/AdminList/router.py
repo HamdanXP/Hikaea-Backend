@@ -32,6 +32,21 @@ async def get_admin_lists():
                             "as": "writer"
                         },
                     },
+                    {
+                        "$lookup": {
+                            "from": "Comments",
+                            "let": {"storyId": {"$toString": "$_id"}},
+                            "pipeline": [
+                                {"$match": {"$expr": {"$eq": ["$storyId", "$$storyId"]}}},
+                                {
+                                    "$project": {
+                                        "_id": 1,
+                                    }
+                                },
+                            ],
+                            "as": "comments"
+                        },
+                    },
                     {"$unwind": "$writer"},
                     {
                         "$project": {
@@ -45,6 +60,10 @@ async def get_admin_lists():
                             "categories": 1,
                             "description": 1,
                             "rank": 1,
+                            "views": 1,
+                            "numPages": {"$size": "$content"},
+                            "likes": {"$size": "$likerList"},
+                            "commentsCount": {"$size": "$comments"},
                             "type": 1,
                             "status": 1,
                             "createdAt": {"$toString": "$createdAt"},
@@ -53,7 +72,7 @@ async def get_admin_lists():
                     },
                     {
                         "$sort": {
-                            'createdAt': pymongo.DESCENDING,
+                            'likes': pymongo.DESCENDING,
                         }
                     },
                 ],
