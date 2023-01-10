@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse
@@ -38,6 +39,24 @@ async def get_reports(report_type: str = None):
             }
         }
     ]))
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=reports, headers=headers)
+
+
+@router.get("/get_reports", description="Use to get the reported things", status_code=200)
+async def get_all_reports():
+    reports = list(db.reports.find({}, {
+        "_id": 0,
+        "reportID": {"$toString": "$_id"},
+        "content": 1,
+        "status": 1,
+        "type": 1,
+        "reportedId": 1,
+        "reporterId": 1
+    }).sort('_id', pymongo.DESCENDING))
     headers = {
         'accept': 'application/json',
         'Content-Type': 'application/json; charset=UTF-8'
