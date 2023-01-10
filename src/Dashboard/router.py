@@ -58,7 +58,7 @@ async def increase_story_rank(story_id: StoryID, background_tasks: BackgroundTas
     return {"message": "The story's rank has been increased successfully"}
 
 
-@router.post("/decrease_rank/{story_id}", description="Use to decrease a story' rank", status_code=200)
+@router.delete("/decrease_rank/{story_id}", description="Use to decrease a story' rank", status_code=200)
 async def decrease_story_rank(story_id: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(decrease_rank, story_id)
     return {"message": "The story's rank has been decreased successfully"}
