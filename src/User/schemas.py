@@ -33,7 +33,7 @@ class UpdateUser(BaseModel):
     profileImage: Optional[str] = Field(default=None, description="The user profile image")
     bio: Optional[str] = Field(default=None, description="The user's bio")
     sex: Optional[str] = Field(default=None, description="The user's sex")
-    FMC: Optional[str] = Field(default=None, description="The user's notification's id")
+    FCM: Optional[str] = Field(default=None, description="The user's notification's id")
     subscriptionTier: Optional[str] = Field(default=None, description="The user's subscription tier")
     subscriptionExpiry: Optional[str] = Field(default=None, description="The user's subscription expiry date")
     personalLink: Optional[str] = Field(default=None, description="The user's personal link")
