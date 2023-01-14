@@ -162,6 +162,7 @@ def send_fcm_notification(target_fcm, text, title, image):
         "notification": {
             "body": text,
             "title": title,
+            "sound": "default"
         },
         "data": {
             "content": {
@@ -169,11 +170,9 @@ def send_fcm_notification(target_fcm, text, title, image):
                 "channelKey": "alerts",
                 "displayOnForeground": True,
                 "notificationLayout": "BigPicture",
-                "largeIcon": image,
                 "bigPicture": image,
                 "showWhen": True,
                 "autoDismissible": True,
-                "privacy": "Private",
             }
         }
     }
