@@ -245,6 +245,30 @@ async def get_user_stories(creator: str, list_id: str):
 
 
 def create_story(story: Story):
+    story_db = db.stories.find_one({'writerId': story.writerId, 'title': story.title})
+    if story_db is not None:
+        update_obj = {"content": story.content, "categories": story.categories, "description": story.description,
+                      "storyCover": story.storyCover}
+
+        if story.storyCover is None:
+            update_obj.pop('storyCover', None)
+
+        db.stories.update_one(
+            {'_id': story_db['_id']},
+            {"$set": {"content": story.content, "categories": story.categories, "description": story.description,
+                      "storyCover": story.storyCover}}
+        )
+
+        if story_db.status.lower() == 'published':
+            notify_admin("تم تحديث قصة منشورة!!", f"لقد تم تحديث القصة {story_db.title}")
+
+        log_obj = {
+            'text': f'Story Updated ({story_db.title}) with status ({story_db.status.lower()})',
+            'createdAt': str(datetime.datetime.utcnow()),
+            'source': 'stories'
+        }
+        db.logs.insert_one(log_obj)
+
     slug = slugify(story.title, allow_unicode=True)
     matches_len = db.stories.count_documents({'slug': {'$regex': f'{slug}'}})
 
