@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pymongo
 import requests
 
 from db import db
@@ -100,6 +101,11 @@ story_comments = {
                     'profileImage': '$commenter.profileImage'
                 }
             },
+            {
+                "$sort": {
+                    'createdAt': pymongo.DESCENDING,
+                }
+            },
         ],
         "as": "comments"
     },
@@ -151,19 +157,25 @@ def send_fcm_notification(target_fcm, text, title, image):
 
     obj = {
         "to": target_fcm,
+        "priority": "high",
+        "mutable_content": True,
         "notification": {
             "body": text,
             "title": title,
-            "image": image,
-            "sound": "default",
         },
-        "apns": {
-            "payload": {
-                "aps": {
-                    "mutable-content": 1
-                }
+        "data": {
+            "content": {
+                "id": 1,
+                "channelKey": "alerts",
+                "displayOnForeground": True,
+                "notificationLayout": "BigPicture",
+                "largeIcon": image,
+                "bigPicture": image,
+                "showWhen": True,
+                "autoDismissible": True,
+                "privacy": "Private",
             }
-        },
+        }
     }
 
     url = 'https://fcm.googleapis.com/fcm/send'

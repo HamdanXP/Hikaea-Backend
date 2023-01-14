@@ -451,8 +451,4 @@ def get_single_story_obj(story):
         if type(story['content']) is str:
             story['content'] = json.loads(story['content'], strict=False)
 
-        for page in story['content']:
-            if 'text' in page and '<pre>' not in page['text']:
-                page['text'] = f"<pre>{page['text']}</pre>"
-
     return story

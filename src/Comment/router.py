@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse
@@ -56,6 +57,11 @@ async def get_story_comments(story_id: str):
                     "status": 1,
                     "createdAt": 1,
                 }
+        },
+        {
+            "$sort": {
+                'createdAt': pymongo.DESCENDING,
+            }
         },
     ]))
     headers = {
