@@ -195,10 +195,10 @@ async def get_follow_list(username: str, type: str = "followersList"):
 
 @router.put("/follow", description="Use to follow a user", status_code=201)
 def follow_user(follow: Follow, res: Response):
-    initiator_profile = db.users.find_one(follow.initiatorId,
+    initiator_profile = db.users.find_one({"uid": follow.initiatorId},
                                           {"_id": 0, "name": 1, "username": 1, "profileImage": 1, "followingList": 1})
     if initiator_profile:
-        to_be_followed_profile = db.users.find_one(follow.toBeFollowedId,
+        to_be_followed_profile = db.users.find_one({"uid": follow.toBeFollowedId},
                                                    {"_id": 0, "name": 1, "username": 1, "FCM": 1})
         if follow.toBeFollowedId in initiator_profile['followingList']:
             response = {
