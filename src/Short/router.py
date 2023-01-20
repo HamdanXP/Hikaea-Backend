@@ -21,7 +21,7 @@ async def add_short(short: Short, background_tasks: BackgroundTasks):
 
 @router.get("/get_shorts", description="Use to get all the shorts", status_code=200)
 @cache_one_minute()
-async def get_shorts(limit: int = 6, sort: str = "new", next_page: str = None):
+async def get_shorts(limit: int = 6, sort: str = "new", nextPage: str = None):
     sort_obj = [('createdAt', pymongo.DESCENDING)]
     find_obj = {}
 
@@ -40,19 +40,19 @@ async def get_shorts(limit: int = 6, sort: str = "new", next_page: str = None):
         sort_obj.pop(0)
         sort_correct = False
 
-    if next_page is not None:
+    if nextPage is not None:
         if sort_correct:
             cursor = db.shorts.find_one(
-                {'_id': ObjectId(next_page)})
+                {'_id': ObjectId(nextPage)})
             find_obj['$expr'] = {
                 '$cond': {
                     'if': {'$eq': ["$votes", cursor['votes']]},
-                    'then': {'$lt': ['$_id', ObjectId(next_page)]},
+                    'then': {'$lt': ['$_id', ObjectId(nextPage)]},
                     'else': {'$lt': ["$votes", cursor['votes']]}
                 }
             }
         else:
-            find_obj['_id'] = {'$lt': ObjectId(next_page)}
+            find_obj['_id'] = {'$lt': ObjectId(nextPage)}
 
     shorts = list(
         db.shorts
