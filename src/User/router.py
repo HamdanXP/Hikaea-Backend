@@ -261,7 +261,7 @@ async def block_user(block_obj: Block, background_tasks: BackgroundTasks):
     return {"message": "The user has been blocked successfully"}
 
 
-@router.delete("/unblock/{initiator_id}/{to_be_unfollowed_id}", description="Use to unblock a user", status_code=200)
+@router.delete("/unblock/{initiator_id}/{to_be_unblocked_id}", description="Use to unblock a user", status_code=200)
 async def unblock_user(initiator_id: str, to_be_unblocked_id: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(unblock, initiator_id, to_be_unblocked_id)
     return {"message": "The user has been unblocked successfully"}
@@ -417,8 +417,7 @@ def unblock(initiator_id: str, to_be_unblocked_id: str):
     db.users.update_one(
         {"uid": initiator_id},
         {
-            "$pull": {"followingList": to_be_unblocked_id},
-            "$addToSet": {"blockedUserList": to_be_unblocked_id}
+            "$pull": {"blockedUserList": to_be_unblocked_id}
         }
     )
 
