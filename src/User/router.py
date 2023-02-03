@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks, Response, status, HTTPException
@@ -358,9 +359,21 @@ async def delete_story_list(initiator_id: str, list_id: str, background_tasks: B
 
 
 def create_user(user: User):
+    referral_code = uuid.uuid4().hex[:12].upper()
+
+    # ensure unique referral codes
+    while True:
+        if db.users.count_documents({"referralCode": referral_code}) == 0:
+            break
+        else:
+            referral_code = uuid.uuid4().hex[:12].upper()
+
     user_dict = user.dict()
     user_dict['bio'] = ''
     user_dict['sex'] = 'undetermined'
+    user_dict['coins'] = 0
+    user_dict['referralCode'] = referral_code
+    user_dict['paidChapters'] = {}
     user_dict['personalLink'] = ''
     user_dict['followersList'] = []
     user_dict['followingList'] = []
