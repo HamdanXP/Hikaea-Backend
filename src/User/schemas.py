@@ -84,3 +84,9 @@ class UserStoriesListItem(BaseModel):
     initiatorId: str = Field(..., description="The list's creator id")
     listId: str = Field(..., description="The list's id")
     storyId: str = Field(..., description="The new story's id")
+
+
+class UpdateCoins(BaseModel):
+    uid: str = Field(..., description="Thu user's uid")
+    operation: str = Field(..., description="The update's operation ('add' or 'remove')")
+    amount: int = Field(..., description="The update's amount")

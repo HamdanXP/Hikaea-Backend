@@ -8,7 +8,7 @@ from fastapi_redis_cache import cache_one_minute
 
 from db import db
 from src.User.schemas import User, UpdateUser, EmailAndUsername, Follow, Block, SubscriptionInfo, UserStoriesList, \
-    UserStoriesListItem
+    UserStoriesListItem, UpdateCoins
 from src.utils import send_notification
 
 router = APIRouter(tags=['User'])
@@ -154,6 +154,12 @@ async def get_user_profile(identifier: str, searchBy: str = 'uid'):
 async def update_user_profile(update_user_model: UpdateUser, background_tasks: BackgroundTasks):
     background_tasks.add_task(update_user, update_user_model)
     return {"message": "The user has been updated successfully"}
+
+
+@router.put("/update_user_coins", description="Use to update the user coins", status_code=200)
+async def user_coins(update_coins: UpdateCoins, background_tasks: BackgroundTasks):
+    background_tasks.add_task(update_user_coins, update_coins)
+    return {"message": "The user's coins has been updated successfully"}
 
 
 @router.get("/get_follow_list/{username}", description="Use to get the user follow list", status_code=200)
@@ -414,6 +420,13 @@ def update_user(update_obj: UpdateUser):
         {'uid': update_obj.uid},
         {'$set': update_dict}
     )
+
+
+def update_user_coins(update_coins: UpdateCoins):
+    if update_coins.operation == "remove":
+        db.users.update_one({"uid": update_coins.uid}, {"inc": {-1 * update_coins.amount}})
+    else:
+        db.users.update_one({"uid": update_coins.uid}, {"inc": {update_coins.amount}})
 
 
 def block(block_obj: Block):
