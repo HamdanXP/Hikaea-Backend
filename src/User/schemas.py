@@ -90,3 +90,8 @@ class UpdateCoins(BaseModel):
     uid: str = Field(..., description="Thu user's uid")
     operation: str = Field(..., description="The update's operation ('add' or 'remove')")
     amount: int = Field(..., description="The update's amount")
+
+
+class Referral(BaseModel):
+    referralCode: str = Field(..., description="The referral code")
+    uid: str = Field(..., description="The user's uid")

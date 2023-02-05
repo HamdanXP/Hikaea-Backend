@@ -8,7 +8,7 @@ from fastapi_redis_cache import cache_one_minute
 
 from db import db
 from src.User.schemas import User, UpdateUser, EmailAndUsername, Follow, Block, SubscriptionInfo, UserStoriesList, \
-    UserStoriesListItem, UpdateCoins
+    UserStoriesListItem, UpdateCoins, Referral
 from src.utils import send_notification
 
 router = APIRouter(tags=['User'])
@@ -160,6 +160,25 @@ async def update_user_profile(update_user_model: UpdateUser, background_tasks: B
 async def user_coins(update_coins: UpdateCoins, background_tasks: BackgroundTasks):
     background_tasks.add_task(update_user_coins, update_coins)
     return {"message": "The user's coins has been updated successfully"}
+
+
+@router.put("/redeem_referral_code", description="Use to redeem code the referral code", status_code=200)
+async def redeem_referral_code(referral: Referral):
+    referral_code_owner = db.users.find_one({'referralCode': referral.referralCode, 'uid': {'$ne': referral.uid}})
+    if referral_code_owner is None:
+        raise HTTPException(status_code=400, detail="Incorrect referral code")
+
+    user = db.users.find_one({"uid": referral.uid}, {"referredBy": 1})
+    if user['referredBy'] is None:
+        db.users.update_one({"uid": referral.uid},
+                            {"$inc": {"coins": 20}, "$set": {"referredBy": referral.referralCode}})
+        db.users.update_one({"referralCode": referral.referralCode}, {"$inc": {"coins": 20}})
+
+        send_notification(title="لقد ربحت 20 عملة", text="لقد ربحت 20 عملة من خلال رمز الدعوة الخاص بك",
+                          target_fcm=referral_code_owner['FCM'], image='https://a.top4top.io/p_22286og1w1.jpeg',
+                          link=None, target_uid=referral_code_owner['uid'], notif_type="Coins", sender_uid=None)
+    else:
+        raise HTTPException(status_code=400, detail="The user has already redeemed a referral code")
 
 
 @router.get("/get_follow_list/{username}", description="Use to get the user follow list", status_code=200)
@@ -424,9 +443,9 @@ def update_user(update_obj: UpdateUser):
 
 def update_user_coins(update_coins: UpdateCoins):
     if update_coins.operation == "remove":
-        db.users.update_one({"uid": update_coins.uid}, {"inc": {-1 * update_coins.amount}})
+        db.users.update_one({"uid": update_coins.uid}, {"$inc": {"coins": -1 * update_coins.amount}})
     else:
-        db.users.update_one({"uid": update_coins.uid}, {"inc": {update_coins.amount}})
+        db.users.update_one({"uid": update_coins.uid}, {"$inc": {"coins": update_coins.amount}})
 
 
 def block(block_obj: Block):
