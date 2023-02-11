@@ -9,7 +9,7 @@ from fastapi_redis_cache import cache_one_minute, cache_one_hour
 from slugify import slugify
 
 from db import db
-from src.Story.schemas import Story, StoriesQuery, UpdateStory, StoryID, StoryReader, StoryLiker
+from src.Story.schemas import Story, StoriesQuery, UpdateStory, StoryID, StoryReader, StoryLiker, BuyChapter
 from src.utils import story_comments, story_writer, send_notification, project_full_story, notify_admin
 
 router = APIRouter(tags=['Story'])
@@ -182,6 +182,12 @@ async def add_story_liker(story_liker: StoryLiker, background_tasks: BackgroundT
 async def delete_story_liker(liker_id: str, story_id: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(remove_liker, liker_id, story_id)
     return {"message": "The story's liker has been removed successfully"}
+
+
+@router.post("/buy_story_chapter", description="Use to buy a story's chapter", status_code=200)
+async def buy_story_chapter(info: BuyChapter, background_tasks: BackgroundTasks):
+    background_tasks.add_task(buy_chapter, info)
+    return {"message": "The story's chapter has been bought successfully"}
 
 
 @router.get("/get_user_stories/{writer_id}", description="Use to get all the stories related to a writer",
@@ -476,3 +482,7 @@ def get_single_story_obj(story):
             story['content'] = json.loads(story['content'], strict=False)
 
     return story
+
+
+def buy_chapter(info: BuyChapter):
+    db.users.update_one({"uid": info.uid}, {"$push": {f"paidChapters.{info.storyId}": info.chapterNumber}})

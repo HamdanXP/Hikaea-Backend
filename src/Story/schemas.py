@@ -75,3 +75,9 @@ class StoriesQuery(BaseModel):
     categories: Optional[List[str]] = Field(default=[], description="The categories you want")
     sortWay: Optional[str] = Field(default="new",
                                    description="The way you want to sort the stories (new, top, trending)")
+
+
+class BuyChapter(BaseModel):
+    uid: str = Field(..., description="The user's uid")
+    storyId: str = Field(..., description="The story's ID")
+    chapterNumber: int = Field(..., description="The chapter number")
