@@ -485,4 +485,5 @@ def get_single_story_obj(story):
 
 
 def buy_chapter(info: BuyChapter):
-    db.users.update_one({"uid": info.uid}, {"$push": {f"paidChapters.{info.storyId}": info.chapterNumber}})
+    db.users.update_one({"uid": info.uid},
+                        {"$push": {f"paidChapters.{info.storyId}": info.chapterNumber}, "$inc": {"coins": -40}})
