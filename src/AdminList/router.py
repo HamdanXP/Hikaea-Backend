@@ -66,6 +66,7 @@ async def get_admin_lists():
                             "commentsCount": {"$size": "$comments"},
                             "type": 1,
                             "status": 1,
+                            "isCompleted": 1,
                             "createdAt": {"$toString": "$createdAt"},
                             "updatedAt": {"$toString": "$updatedAt"}
                         }

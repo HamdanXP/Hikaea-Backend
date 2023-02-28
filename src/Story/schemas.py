@@ -12,6 +12,7 @@ class Story(BaseModel):
     description: str = Field(..., description="The story's description")
     categories: list = Field(..., description="The story's categories IDs")
     storyCover: str = Field(..., description="The story's cover")
+    isCompleted: Optional[bool] = Field(default=True, description="The story's isCompleted flag")
     status: str = Field(..., description="The story's status ('published', 'pending', 'draft', 'rejected', 'deleted')")
 
     class Config:
@@ -38,6 +39,7 @@ class UpdateStory(BaseModel):
     description: str = Field(..., description="The story's description")
     categories: list = Field(..., description="The story's categories IDs")
     storyCover: str = Field(..., description="The story's cover")
+    isCompleted: Optional[bool] = Field(default=True, description="The story's isCompleted flag")
     status: str = Field(..., description="The story's status ('published', 'pending', 'draft', 'rejected', 'deleted')")
 
     class Config:
