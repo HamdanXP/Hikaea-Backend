@@ -49,7 +49,7 @@ async def get_all_stories(storiesQuery: StoriesQuery, limit: int = 12, include_c
     elif storiesQuery.sortWay == 'trending':
         sort_key = f'dailyViews.{str(datetime.date.today())}'
     else:
-        sort_key = 'createdAt'
+        sort_key = 'updatedAt'
 
     query_list = [{'status': 'published'}]
     # get all stories the have one or more of requested categories
