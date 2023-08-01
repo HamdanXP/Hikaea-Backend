@@ -24,8 +24,6 @@ async def verify_token(Authorization: str = Header()):
         raise HTTPException(status_code=401, detail="Authorization header invalid")
 
 
-LOCAL_REDIS_URL = "redis://127.0.0.1:6379"
-
 app = FastAPI(dependencies=[Depends(verify_token)])
 app.add_middleware(GZipMiddleware)
 app.add_middleware(
@@ -44,14 +42,6 @@ def startup():
     db_name = 'hikayaDB'
     connection_string = f'mongodb+srv://{db_username}:{db_password}@hikaya.hwclb.mongodb.net/{db_name}?retryWrites=true&w=majority'
     db.connect_to_database(path=connection_string)
-
-    redis_cache = FastApiRedisCache()
-    redis_cache.init(
-        host_url=os.environ.get("REDIS_URL", LOCAL_REDIS_URL),
-        prefix="myapi-cache",
-        response_header="X-MyAPI-Cache",
-        ignore_arg_types=[Request, Response]
-    )
 
 
 @app.on_event("shutdown")
