@@ -9,7 +9,7 @@ from fastapi_redis_cache import cache_one_minute
 from db import db
 from src.User.schemas import User, UpdateUser, EmailAndUsername, Follow, Block, SubscriptionInfo, UserStoriesList, \
     UserStoriesListItem, UpdateCoins, Referral
-from src.utils import send_notification
+from src.utils import send_notification, notify_admin
 
 router = APIRouter(tags=['User'])
 
@@ -513,6 +513,8 @@ def subscribe_user(subscription_info: SubscriptionInfo):
         'createdAt': str(datetime.datetime.utcnow()),
         'source': 'subscription'
     }
+
+    notify_admin(log_obj['text'])
 
     db.logs.insert_one(log_obj)
 

@@ -149,8 +149,6 @@ def notify_admin(title, text):
     turki = db.users.find_one({"username": "Turki"}, {'FCM': 1})
     send_fcm_notification(turki['FCM'], text, title, 'https://a.top4top.io/p_22286og1w1.jpeg')
 
-    hamdan = db.users.find_one({"username": "Hamdan"}, {'FCM': 1})
-    send_fcm_notification(hamdan['FCM'], text, title, 'https://a.top4top.io/p_22286og1w1.jpeg')
 
 
 def send_fcm_notification(target_fcm, text, title, image):

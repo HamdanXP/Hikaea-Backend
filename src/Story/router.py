@@ -6,7 +6,7 @@ from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi_redis_cache import cache_one_minute, cache_one_hour
-from slugify import slugify
+import slugify
 
 from db import db
 from src.Story.schemas import Story, StoriesQuery, UpdateStory, StoryID, StoryReader, StoryLiker, BuyChapter
@@ -52,6 +52,70 @@ async def get_all_stories(storiesQuery: StoriesQuery, limit: int = 12, include_c
         sort_key = 'updatedAt'
 
     query_list = [{'status': 'published'}]
+    query_list.append({'type': {'$ne': 'book'}})
+    # get all stories the have one or more of requested categories
+    categories_filters = []
+    for category in storiesQuery.categories:
+        categories_filters.append({'categories': category})
+
+    if len(categories_filters) != 0:
+        query_list.append({'$and': categories_filters})
+
+    if not include_chat:
+        query_list.append({'type': {'$ne': 'chat'}})
+
+    if storiesQuery.nextPage is not None:
+        find_obj = {}
+        cursor = db.stories.find_one(
+            {'_id': ObjectId(storiesQuery.nextPage)}, {'_id': 0, 'rank': 1})
+
+        find_obj['$expr'] = {
+            '$cond': {
+                'if': {'$eq': ["$rank", 0 if 'rank' not in cursor else cursor['rank']]},
+                'then': {'$lt': ['$_id', ObjectId(storiesQuery.nextPage)]},
+                'else': {'$lt': ["$rank", 0 if 'rank' not in cursor else cursor['rank']]}
+            }
+        }
+
+        query_list.insert(0, find_obj)
+
+    stories = list(db.stories.aggregate([
+        {"$match": {'$and': query_list}},
+        story_writer,
+        {"$unwind": "$writer"},
+        story_comments,
+        {
+            "$sort": {
+                'rank': pymongo.DESCENDING,
+                sort_key: pymongo.DESCENDING
+            }
+        },
+        {"$limit": limit} if limit > 0 else {
+            "$addFields": {}
+        },
+        {
+            "$addFields": {"emptyArray": []}
+        },
+        project_full_story
+    ]))
+
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=stories, headers=headers)
+
+@router.post("/get_all_books", description="Use to get all the stories", status_code=200)
+async def get_all_stories(storiesQuery: StoriesQuery, limit: int = 20, include_chat: bool = False):
+    if storiesQuery.sortWay == 'top':
+        sort_key = 'views'
+    elif storiesQuery.sortWay == 'trending':
+        sort_key = f'dailyViews.{str(datetime.date.today())}'
+    else:
+        sort_key = 'updatedAt'
+
+    query_list = [{'status': 'published'}]
+    query_list.append({'type': 'book'})
     # get all stories the have one or more of requested categories
     categories_filters = []
     for category in storiesQuery.categories:
@@ -123,7 +187,7 @@ async def search_stories(search_text: str):
     if len(search_text) < 3:
         return []
     stories = list(db.stories.aggregate([
-        {"$match": {'title': {'$regex': search_text}, 'status': 'published'}},
+        {"$match": {'title': {'$regex': search_text}, 'status': 'published', 'type': {'$ne': 'book'}}},
         story_writer,
         {"$unwind": "$writer"},
         story_comments,
@@ -138,11 +202,45 @@ async def search_stories(search_text: str):
     }
     return JSONResponse(content=stories, headers=headers)
 
+@router.get("/get_matched_books/{search_text}", description="Use to search the stories by the title", status_code=200)
+@cache_one_hour()
+async def search_stories(search_text: str):
+    if len(search_text) < 3:
+        return []
+    stories = list(db.stories.aggregate([
+        {"$match": {'title': {'$regex': search_text}, 'status': 'published', 'type': 'book'}},
+        story_writer,
+        {"$unwind": "$writer"},
+        story_comments,
+        {
+            "$addFields": {"emptyArray": []}
+        },
+        project_full_story
+    ]))
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=stories, headers=headers)
 
 @router.get("/get_random_story", description="Use to get a random story", response_model=Story, status_code=200)
 async def get_random_story():
     story = list(db.stories.aggregate([
-        {'$match': {'status': 'published'}}, {'$sample': {'size': 1}},
+        {'$match': {'status': 'published', 'type': {'$ne': 'book'}}}, {'$sample': {'size': 1}},
+        story_writer,
+        {"$unwind": "$writer"},
+        story_comments,
+    ]))[0]
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=get_single_story_obj(story), headers=headers)
+
+@router.get("/get_random_story", description="Use to get a random story", response_model=Story, status_code=200)
+async def get_random_story():
+    story = list(db.stories.aggregate([
+        {'$match': {'status': 'published', 'type': 'book'}}, {'$sample': {'size': 1}},
         story_writer,
         {"$unwind": "$writer"},
         story_comments,
@@ -158,6 +256,11 @@ async def get_random_story():
 async def add_story_view(storyId: StoryID, background_tasks: BackgroundTasks):
     background_tasks.add_task(add_view, storyId)
     return {"message": "The story's view has been added successfully"}
+
+@router.post("/add_book_stat", description="Use to add a book stat", status_code=200)
+async def add_book_stat(storyId: StoryID, user_id: str, page_number: str, action: str, background_tasks: BackgroundTasks):
+    background_tasks.add_task(add_book_stat, storyId, user_id, page_number, action)
+    return {"message": "The book stat has been recorded successfully"}
 
 
 @router.delete("/remove_story_view/{story_id}", description="Use to remove a story view", status_code=200)
@@ -288,6 +391,12 @@ def create_story(story: Story):
     if type(story_dict['categories']) is str:
         story_dict['categories'] = json.loads(story_dict['categories'], strict=False)
 
+    if 'toc' in story_dict:
+        if type(story_dict['toc']) is str:
+            story_dict['toc'] = json.loads(story_dict['toc'], strict=False)
+
+    
+
     story_dict['status'] = story.status.lower()
     story_dict['slug'] = slug
     story_dict['views'] = 0
@@ -296,6 +405,8 @@ def create_story(story: Story):
     story_dict['likerList'] = []
     story_dict['createdAt'] = datetime.datetime.utcnow()
     story_dict['updatedAt'] = datetime.datetime.utcnow()
+    
+
 
     story_id = db.stories.insert_one(story_dict).inserted_id
     story_id = str(story_id)
@@ -373,6 +484,27 @@ def add_view(storyId: StoryID):
         'text': f'Some User Viewed Story ({story_name}))',
         'createdAt': str(datetime.datetime.utcnow()),
         'source': 'storyViews'
+    }
+    db.logs.insert_one(log_obj)
+
+def add_book_stat(storyId: StoryID, user_id: str, page_number: str, action: str):
+    story_id = storyId.storyId
+    book_name = db.stories.find_one({'_id': ObjectId(story_id)}, {'title': 1})['title']
+
+    bookstat_obj = {
+        'bookId': story_id,
+        'bookName': book_name,
+        'userId': user_id,
+        'page_number': page_number,
+        'action': action,
+        'createdAt': str(datetime.datetime.utcnow())
+    }
+    db.bookstats.insert_one(bookstat_obj)
+
+    log_obj = {
+        'text': f'A subscriber {action} book ({story_name}))',
+        'createdAt': str(datetime.datetime.utcnow()),
+        'source': 'bookstats'
     }
     db.logs.insert_one(log_obj)
 

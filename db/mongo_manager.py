@@ -17,6 +17,7 @@ class MongoManager:
     reports: Collection = None
     shorts: Collection = None
     stories: Collection = None
+    bookstats: Collection = None
     users: Collection = None
 
     def connect_to_database(self, path: str):
@@ -33,6 +34,7 @@ class MongoManager:
         self.reports = self.db['Report']
         self.shorts = self.db['Short']
         self.stories = self.db['Story']
+        self.bookstats = self.db['BookStats']
         self.users = self.db['User']
         logging.info("Connected to MongoDB.")
 
