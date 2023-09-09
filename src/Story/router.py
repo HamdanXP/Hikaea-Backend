@@ -6,7 +6,7 @@ from bson import ObjectId
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi_redis_cache import cache_one_minute, cache_one_hour
-import slugify
+from slugify import slugify
 
 from db import db
 from src.Story.schemas import Story, StoriesQuery, UpdateStory, StoryID, StoryReader, StoryLiker, BuyChapter
@@ -499,7 +499,7 @@ def add_book_stat(storyId: StoryID, user_id: str, page_number: str, action: str)
     db.bookstats.insert_one(bookstat_obj)
 
     log_obj = {
-        'text': f'A subscriber {action} book ({story_name}))',
+        'text': f'A subscriber {action} book ({book_name}))',
         'createdAt': str(datetime.datetime.utcnow()),
         'source': 'bookstats'
     }
