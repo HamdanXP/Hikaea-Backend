@@ -105,8 +105,8 @@ async def get_all_stories(storiesQuery: StoriesQuery, limit: int = 12, include_c
     }
     return JSONResponse(content=stories, headers=headers)
 
-@router.post("/get_all_books", description="Use to get all the stories", status_code=200)
-async def get_all_books(storiesQuery: StoriesQuery, limit: int = 20, include_chat: bool = False):
+@router.post("/get_all_books", description="Use to get all the books", status_code=200)
+async def get_all_books(storiesQuery: StoriesQuery, limit: int = 20):
     if storiesQuery.sortWay == 'top':
         sort_key = 'views'
     elif storiesQuery.sortWay == 'trending':
@@ -114,7 +114,7 @@ async def get_all_books(storiesQuery: StoriesQuery, limit: int = 20, include_cha
     else:
         sort_key = 'updatedAt'
 
-    query_list = [{'status': 'published'}]
+    query_list = [{'status': 'book'}]
     query_list.append({'type': 'book'})
     # get all stories the have one or more of requested categories
     categories_filters = []
@@ -123,9 +123,6 @@ async def get_all_books(storiesQuery: StoriesQuery, limit: int = 20, include_cha
 
     if len(categories_filters) != 0:
         query_list.append({'$and': categories_filters})
-
-    if not include_chat:
-        query_list.append({'type': {'$ne': 'chat'}})
 
     if storiesQuery.nextPage is not None:
         find_obj = {}
