@@ -106,7 +106,7 @@ async def get_all_stories(storiesQuery: StoriesQuery, limit: int = 12, include_c
     return JSONResponse(content=stories, headers=headers)
 
 @router.post("/get_all_books", description="Use to get all the stories", status_code=200)
-async def get_all_stories(storiesQuery: StoriesQuery, limit: int = 20, include_chat: bool = False):
+async def get_all_books(storiesQuery: StoriesQuery, limit: int = 20, include_chat: bool = False):
     if storiesQuery.sortWay == 'top':
         sort_key = 'views'
     elif storiesQuery.sortWay == 'trending':
@@ -237,7 +237,7 @@ async def get_random_story():
     }
     return JSONResponse(content=get_single_story_obj(story), headers=headers)
 
-@router.get("/get_random_story", description="Use to get a random story", response_model=Story, status_code=200)
+@router.get("/get_random_book", description="Use to get a random book", response_model=Story, status_code=200)
 async def get_random_story():
     story = list(db.stories.aggregate([
         {'$match': {'status': 'published', 'type': 'book'}}, {'$sample': {'size': 1}},
