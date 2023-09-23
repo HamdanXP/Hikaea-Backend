@@ -402,10 +402,13 @@ def create_story(story: Story):
     story_dict['likerList'] = []
     story_dict['createdAt'] = datetime.datetime.utcnow()
     story_dict['updatedAt'] = datetime.datetime.utcnow()
-    story_dict['writerName'] = story.writerName
-    story_dict['writerBio'] = story.writerBio
-    story_dict['writerImageLink'] = story.writerImageLink
-    story_dict['pubName'] = story.pubName
+    try:
+        story_dict['writerName'] = story.writerName
+        story_dict['writerBio'] = story.writerBio
+        story_dict['writerImageLink'] = story.writerImageLink
+        story_dict['pubName'] = story.pubName
+    except:
+        pass
 
 
 

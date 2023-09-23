@@ -14,6 +14,11 @@ class Story(BaseModel):
     storyCover: str = Field(..., description="The story's cover")
     isCompleted: Optional[bool] = Field(default=True, description="The story's isCompleted flag")
     status: str = Field(..., description="The story's status ('published', 'pending', 'draft', 'rejected', 'deleted')")
+    toc: Optional[List[object]] = Field(default=None, description="Table of contents for the story")
+    writerName: Optional[str] = Field(default=None, description="Name of the writer")
+    writerBio: Optional[str] = Field(default=None, description="Biography of the writer")
+    writerImageLink: Optional[str] = Field(default=None, description="Link to the writer's image")
+    pubName: Optional[str] = Field(default=None, description="Name of the publication (if applicable)")
 
     class Config:
         schema_extra = {
@@ -25,7 +30,12 @@ class Story(BaseModel):
                 "description": "This is a great story",
                 "categories": ["123asas45", "1234sas5"],
                 "storyCover": "http://image",
-                "status": "pending"
+                "status": "pending",
+                "toc": [{"title": "Chapter 1", "page": 1}, {"title": "Chapter 2", "page": 10}],
+                "writerName": "John Doe",
+                "writerBio": "A passionate writer",
+                "writerImageLink": "http://writerimage",
+                "pubName": "Great Publications"
             }
         }
 
@@ -41,6 +51,11 @@ class UpdateStory(BaseModel):
     storyCover: str = Field(..., description="The story's cover")
     isCompleted: Optional[bool] = Field(default=True, description="The story's isCompleted flag")
     status: str = Field(..., description="The story's status ('published', 'pending', 'draft', 'rejected', 'deleted')")
+    toc: Optional[List[object]] = Field(default=None, description="Table of contents for the story")
+    writerName: Optional[str] = Field(default=None, description="Name of the writer")
+    writerBio: Optional[str] = Field(default=None, description="Biography of the writer")
+    writerImageLink: Optional[str] = Field(default=None, description="Link to the writer's image")
+    pubName: Optional[str] = Field(default=None, description="Name of the publication (if applicable)")
 
     class Config:
         schema_extra = {
@@ -52,9 +67,15 @@ class UpdateStory(BaseModel):
                 "description": "This is a great story",
                 "categories": ["123asas45", "1234sas5"],
                 "storyCover": "http://image",
-                "status": "pending"
+                "status": "pending",
+                "toc": [{"title": "Chapter 1", "page": 1}, {"title": "Chapter 2", "page": 10}],
+                "writerName": "Jane Smith",
+                "writerBio": "An experienced writer",
+                "writerImageLink": "http://writerimage2",
+                "pubName": "Fantastic Publications"
             }
         }
+
 
 
 class StoryID(BaseModel):
