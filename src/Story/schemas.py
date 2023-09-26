@@ -2,7 +2,6 @@ from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
-
 class Story(BaseModel):
     type: str = Field(..., description="The story's type 'normal' or 'chat'")
     writerId: str = Field(..., description="The writer uid")
@@ -19,6 +18,8 @@ class Story(BaseModel):
     writerBio: Optional[str] = Field(default=None, description="Biography of the writer")
     writerImageLink: Optional[str] = Field(default=None, description="Link to the writer's image")
     pubName: Optional[str] = Field(default=None, description="Name of the publication (if applicable)")
+    startPage: Optional[str] = Field(default=None, description="The starting page of the story")
+    previewLimit: Optional[str] = Field(default=None, description="The preview limit for the story")
 
     class Config:
         schema_extra = {
@@ -35,7 +36,9 @@ class Story(BaseModel):
                 "writerName": "John Doe",
                 "writerBio": "A passionate writer",
                 "writerImageLink": "http://writerimage",
-                "pubName": "Great Publications"
+                "pubName": "Great Publications",
+                "startPage": "1",
+                "previewLimit": "10"
             }
         }
 
@@ -56,6 +59,8 @@ class UpdateStory(BaseModel):
     writerBio: Optional[str] = Field(default=None, description="Biography of the writer")
     writerImageLink: Optional[str] = Field(default=None, description="Link to the writer's image")
     pubName: Optional[str] = Field(default=None, description="Name of the publication (if applicable)")
+    startPage: Optional[str] = Field(default=None, description="The starting page of the story")
+    previewLimit: Optional[str] = Field(default=None, description="The preview limit for the story")
 
     class Config:
         schema_extra = {
@@ -72,10 +77,11 @@ class UpdateStory(BaseModel):
                 "writerName": "Jane Smith",
                 "writerBio": "An experienced writer",
                 "writerImageLink": "http://writerimage2",
-                "pubName": "Fantastic Publications"
+                "pubName": "Fantastic Publications",
+                "startPage": "1",
+                "previewLimit": "10"
             }
         }
-
 
 
 class StoryID(BaseModel):

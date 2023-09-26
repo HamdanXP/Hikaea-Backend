@@ -407,6 +407,8 @@ def create_story(story: Story):
         story_dict['writerBio'] = story.writerBio
         story_dict['writerImageLink'] = story.writerImageLink
         story_dict['pubName'] = story.pubName
+        story_dict['previewLimit'] = story.previewLimit
+        story_dict['startPage'] = story.startPage
     except:
         pass
 
