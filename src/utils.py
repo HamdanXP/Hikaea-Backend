@@ -83,9 +83,6 @@ project_full_book = {
     "$project": {
         "_id": 0,
         "storyId": {"$toString": "$_id"},
-        "pubBio": "$writer.bio",
-        "username": "$writer.username",
-        "pubImage": "$writer.profileImage",
         "writerId": 1,
         "title": 1,
         "slug": 1,

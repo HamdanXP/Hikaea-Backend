@@ -141,8 +141,6 @@ async def get_all_books(storiesQuery: StoriesQuery, limit: int = 20):
 
     stories = list(db.stories.aggregate([
         {"$match": {'$and': query_list}},
-        story_writer,
-        {"$unwind": "$writer"},
         story_comments,
         {
             "$sort": {
