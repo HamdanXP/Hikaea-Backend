@@ -10,7 +10,7 @@ from slugify import slugify
 
 from db import db
 from src.Story.schemas import Story, StoriesQuery, UpdateStory, StoryID, StoryReader, StoryLiker, BuyChapter
-from src.utils import story_comments, story_writer, send_notification, project_full_story, notify_admin, project_full_book
+from src.utils import story_comments, story_writer, send_notification, project_full_story, notify_admin
 
 router = APIRouter(tags=['Story'])
 

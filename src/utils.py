@@ -24,33 +24,6 @@ project_story_field = {
     }
 }
 
-project_book_field = {
-    "$project": {
-        "_id": 0,
-        "storyId": {"$toString": "$_id"},
-        "pubBio": "$writer.bio",
-        "username": "$writer.username",
-        "pubImage": "$writer.profileImage",
-        "writerId": 1,
-        "title": 1,
-        "slug": 1,
-        "storyCover": 1,
-        "categories": 1,
-        "description": 1,
-        "isCompleted": 1,
-        "rank": 1,
-        "type": 1,
-        "numPages": {"$size": "$content"},
-        "status": 1,
-        "writerName": 1,
-        "writerBio": 1,
-        "writerImageLink": 1,
-        "pubName": 1,
-        "startPage": 1,
-        "previewLimit": 1
-    }
-}
-
 project_full_story = {
     "$project": {
         "_id": 0,
@@ -79,35 +52,6 @@ project_full_story = {
     }
 }
 
-project_full_book = {
-    "$project": {
-        "_id": 0,
-        "storyId": {"$toString": "$_id"},
-        "writerId": 1,
-        "title": 1,
-        "slug": 1,
-        "storyCover": 1,
-        "categories": 1,
-        "description": 1,
-        "views": 1,
-        "isCompleted": 1,
-        "rank": 1,
-        "type": 1,
-        "numPages": {"$size": "$content"},
-        "likes": {"$size": "$likerList"},
-        "commentsCount": {"$size": "$comments"},
-        "comments": "$emptyArray",
-        "status": 1,
-        "createdAt": {"$toString": "$createdAt"},
-        "updatedAt": {"$toString": "$updatedAt"},
-        "writerName": 1,
-        "writerBio": 1,
-        "writerImageLink": 1,
-        "pubName": 1,
-        "startPage": 1,
-        "previewLimit": 1
-    }
-}
 
 
 story_writer = {
