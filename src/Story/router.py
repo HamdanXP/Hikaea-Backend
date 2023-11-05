@@ -154,7 +154,7 @@ async def get_all_books(storiesQuery: StoriesQuery, limit: int = 20):
         {
             "$addFields": {"emptyArray": []}
         },
-        project_full_book
+        project_full_story
     ]))
 
     headers = {
