@@ -74,7 +74,8 @@ async def get_admin_lists():
                             "writerImageLink": 1,
                             "pubName": 1,
                             "startPage": 1,
-                            "previewLimit": 1
+                            "previewLimit": 1,
+                            "toc": 1
                         }
                     },
                     {
