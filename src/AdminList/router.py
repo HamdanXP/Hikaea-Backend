@@ -7,6 +7,7 @@ from fastapi_redis_cache import cache_one_hour
 from fastapi.responses import JSONResponse
 from db import db
 from src.AdminList.schemas import AdminList, UpdateAdminList
+from src.utils import project_full_story
 
 router = APIRouter(tags=['AdminList'])
 
@@ -20,18 +21,18 @@ async def get_admin_lists():
                 "from": "Story",
                 "let": {"listStoryIds": "$listStoryIds"},
                 "pipeline": [
-                    {"$match": {"$expr": {"$in": [{"$toString": "$_id"}, "$$listStoryIds"]}}},
-                    {
-                        "$lookup": {
-                            "from": "User",
-                            "let": {"writerId": "$writerId"},
-                            "pipeline": [
-                                {"$match": {"$expr": {"$eq": ["$uid", "$$writerId"]}}},
-                                {"$project": {"_id": 0, "uid": 1, "name": 1}},
-                            ],
-                            "as": "writer"
-                        },
-                    },
+                    # {"$match": {"$expr": {"$in": [{"$toString": "$_id"}, "$$listStoryIds"]}}},
+                    # {
+                    #     "$lookup": {
+                    #         "from": "User",
+                    #         "let": {"writerId": "$writerId"},
+                    #         "pipeline": [
+                    #             {"$match": {"$expr": {"$eq": ["$uid", "$$writerId"]}}},
+                    #             {"$project": {"_id": 0, "uid": 1, "name": 1}},
+                    #         ],
+                    #         "as": "writer"
+                    #     },
+                    # },
                     {
                         "$lookup": {
                             "from": "Comments",
@@ -48,29 +49,7 @@ async def get_admin_lists():
                         },
                     },
                     {"$unwind": "$writer"},
-                    {
-                        "$project": {
-                            "_id": 0,
-                            "storyId": {"$toString": "$_id"},
-                            "writerName": "$writer.name",
-                            "writerId": 1,
-                            "title": 1,
-                            "slug": 1,
-                            "storyCover": 1,
-                            "categories": 1,
-                            "description": 1,
-                            "rank": 1,
-                            "views": 1,
-                            "numPages": {"$size": "$content"},
-                            "likes": {"$size": "$likerList"},
-                            "commentsCount": {"$size": "$comments"},
-                            "type": 1,
-                            "status": 1,
-                            "isCompleted": 1,
-                            "createdAt": {"$toString": "$createdAt"},
-                            "updatedAt": {"$toString": "$updatedAt"}
-                        }
-                    },
+                    project_full_story,
                     {
                         "$sort": {
                             'likes': pymongo.DESCENDING,
