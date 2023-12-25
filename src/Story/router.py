@@ -41,6 +41,24 @@ async def get_story(slug: str):
     }
     return JSONResponse(content=get_single_story_obj(story_obj), headers=headers)
 
+@router.get("/get_book/{slug}", description="Use to get a book by its slug", status_code=200)
+@cache_one_minute()
+async def get_book(slug: str):
+    story = list(db.stories.aggregate([
+        {"$match": {'slug': slug}},
+        story_comments,
+    ]))
+
+    if len(story) == 0:
+        raise HTTPException(status_code=400, detail="The story does not exist")
+
+    story_obj = story[0]
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    return JSONResponse(content=get_single_book_obj(story_obj), headers=headers)
+
 
 @router.post("/get_all_stories", description="Use to get all the stories", status_code=200)
 async def get_all_stories(storiesQuery: StoriesQuery, limit: int = 12, include_chat: bool = False):
@@ -619,6 +637,22 @@ def get_single_story_obj(story):
 
     return story
 
+def get_single_book_obj(story):
+    story['storyId'] = str(story['_id'])
+    story.pop('_id', None)
+
+    story['commentsCount'] = len(story['comments'])
+    story['likes'] = len(story['likerList'])
+    story['numPages'] = len(story['content'])
+    story['createdAt'] = str(story['createdAt'])
+    story['updatedAt'] = str(story['updatedAt']) if 'updatedAt' in story else str(story['createdAt'])
+    story.pop('dailyViews', None)
+
+    if 'type' not in story or story['type'] != 'chat':
+        if type(story['content']) is str:
+            story['content'] = json.loads(story['content'], strict=False)
+
+    return story
 
 def buy_chapter(info: BuyChapter):
     db.users.update_one({"uid": info.uid},
