@@ -92,6 +92,7 @@ async def get_admin_lists():
                 "_id": 0,
                 "listId": {"$toString": "$_id"},
                 "title": 1,
+                "description": 1,
                 "status": 1,
                 "stories": 1
             },
