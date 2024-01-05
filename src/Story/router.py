@@ -510,11 +510,9 @@ def add_view(storyId: StoryID):
     db.logs.insert_one(log_obj)
 
 def add_book_stat(storyId: str, user_id: str, page_number: str, action: str):
-    book_name = db.stories.find_one({'_id': ObjectId(storyId)}, {'title': 1})['title']
-
+    
     bookstat_obj = {
         'bookId': storyId,
-        'bookName': book_name,
         'userId': user_id,
         'page_number': page_number,
         'action': action,
