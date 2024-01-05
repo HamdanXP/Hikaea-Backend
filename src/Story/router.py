@@ -271,7 +271,7 @@ async def add_story_view(storyId: StoryID, background_tasks: BackgroundTasks):
     return {"message": "The story's view has been added successfully"}
 
 @router.post("/add_book_stat", description="Use to add a book stat", status_code=200)
-async def add_book_stat(storyId: StoryID, user_id: str, page_number: str, action: str, background_tasks: BackgroundTasks):
+async def add_book_stat(storyId: str, user_id: str, page_number: str, action: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(add_book_stat, storyId, user_id, page_number, action)
     return {"message": "The book stat has been recorded successfully"}
 
@@ -509,12 +509,11 @@ def add_view(storyId: StoryID):
     }
     db.logs.insert_one(log_obj)
 
-def add_book_stat(storyId: StoryID, user_id: str, page_number: str, action: str):
-    story_id = storyId.storyId
-    book_name = db.stories.find_one({'_id': ObjectId(story_id)}, {'title': 1})['title']
+def add_book_stat(storyId: str, user_id: str, page_number: str, action: str):
+    book_name = db.stories.find_one({'_id': ObjectId(storyId)}, {'title': 1})['title']
 
     bookstat_obj = {
-        'bookId': story_id,
+        'bookId': storyId,
         'bookName': book_name,
         'userId': user_id,
         'page_number': page_number,
