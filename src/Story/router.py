@@ -221,14 +221,12 @@ async def search_stories(search_text: str):
     if len(search_text) < 3:
         return []
     stories = list(db.stories.aggregate([
-        {"$match": {'title': {'$regex': search_text}, 'status': 'published', 'type': 'book'}},
-        story_writer,
-        {"$unwind": "$writer"},
+        {"$match": {'title': {'$regex': search_text}, 'type': 'book'}},
         story_comments,
         {
             "$addFields": {"emptyArray": []}
         },
-        project_full_story
+        project_full_book
     ]))
     headers = {
         'accept': 'application/json',
