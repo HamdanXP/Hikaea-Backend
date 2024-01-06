@@ -10,7 +10,7 @@ from slugify import slugify
 
 from db import db
 from src.Story.schemas import Story, StoriesQuery, UpdateStory, StoryID, StoryReader, StoryLiker, BuyChapter
-from src.utils import story_comments, story_writer, send_notification, project_full_story, notify_admin, project_full_book
+from src.utils import story_comments, story_writer, send_notification, project_full_story, notify_admin, project_full_book, BookStat
 
 router = APIRouter(tags=['Story'])
 
@@ -271,8 +271,8 @@ async def add_story_view(storyId: StoryID, background_tasks: BackgroundTasks):
     return {"message": "The story's view has been added successfully"}
 
 @router.post("/add_book_stat", description="Use to add a book stat", status_code=200)
-async def add_book_stat(storyId: StoryID, user_id: str, page_number: str, action: str, background_tasks: BackgroundTasks):
-    background_tasks.add_task(add_stat, storyId, user_id, page_number, action)
+async def add_book_stat(bookStat: BookStat, background_tasks: BackgroundTasks):
+    background_tasks.add_task(add_stat, bookStat)
     return {"message": "The book stat has been recorded successfully"}
 
 
@@ -509,22 +509,22 @@ def add_view(storyId: StoryID):
     }
     db.logs.insert_one(log_obj)
 
-def add_stat(storyId: StoryID, user_id: str, page_number: str, action: str):
-    story_id = storyId.storyId
+def add_stat(bookstat: BookStat):
+    story_id = bookstat.storyId
     book_name = db.stories.find_one({'_id': ObjectId(story_id)}, {'title': 1})['title']
 
     bookstat_obj = {
         'bookId': story_id,
         'bookName': book_name,
-        'userId': user_id,
-        'page_number': page_number,
-        'action': action,
+        'userId': bookstat.user_id,
+        'page_number': bookstat.page_number,
+        'action': bookstat.action,
         'createdAt': str(datetime.datetime.utcnow())
     }
     db.bookstats.insert_one(bookstat_obj)
 
     log_obj = {
-        'text': f'A subscriber {action} book ({book_name}))',
+        'text': f'A user {bookstat.action} book ({book_name}))',
         'createdAt': str(datetime.datetime.utcnow()),
         'source': 'bookstats'
     }
