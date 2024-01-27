@@ -16,6 +16,11 @@ router = APIRouter(tags=['AdminList'])
 async def get_admin_lists():
     admin_lists = list(db.admin_lists.aggregate([
         {
+            "$sort": {
+                'index': pymongo.ASCENDING  # Sorting by 'index' in ascending order
+            }
+        },
+        {
             "$lookup": {
                 "from": "Story",
                 "let": {"listStoryIds": "$listStoryIds"},
