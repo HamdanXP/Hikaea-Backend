@@ -503,13 +503,25 @@ def subscribe_user(subscription_info: SubscriptionInfo):
     target_uid = subscription_info.uid
     sender_uid = ''
     notif_type = 'subscription'
-    if 'FCM' in target_user:
-        target_fcm = target_user['FCM']
-        send_notification(title, text, image, link,
-                          notif_type, target_uid, sender_uid, target_fcm)
 
+    logtext = ''
+
+    if target_user:
+        if 'FCM' in target_user:
+            target_fcm = target_user['FCM']
+            send_notification(title, text, image, link,
+                          notif_type, target_uid, sender_uid, target_fcm)
+        
+        username = target_user.get("username", "Unknown user")
+        logtext = f'{username} just subscribed 🤑💰 until {subscription_info.subscriptionExpiry}'
+
+    else:
+        logtext = f'Anon User just subscribed 🤑💰 until {subscription_info.subscriptionExpiry}'
+
+
+    
     log_obj = {
-        'text': f'{target_user["username"]} just subscribed 🤑💰 until {subscription_info.subscriptionExpiry}',
+        'text': logtext,
         'createdAt': str(datetime.datetime.utcnow()),
         'source': 'subscription'
     }

@@ -38,7 +38,7 @@ async def get_logs(nextPage: str = None):
     if nextPage is not None:
         query['_id'] = {'$lt': ObjectId(nextPage)}
 
-    logs = list(db.logs.find(query, project_obj).sort('createdAt', pymongo.DESCENDING).limit(100))
+    logs = list(db.logs.find(query, project_obj).sort('createdAt', pymongo.DESCENDING).limit(500))
     headers = {
         'accept': 'application/json',
         'Content-Type': 'application/json; charset=UTF-8'
